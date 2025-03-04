@@ -95,7 +95,7 @@ export default function PlayRandomMoveEngine() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b md:bg-gradient-to-r from-[#282626] to-[#211919] text-white p-6">
       <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
-        Play Against Machine
+        Play Online Chess
       </h1>
 
       <div className="grid md:grid-cols-2 grid-cols-1 gap-10 w-full max-w-6xl">
