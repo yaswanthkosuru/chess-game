@@ -7,7 +7,7 @@ import {
   usePresenceListener,
 } from "ably/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const RealTime = () => {
@@ -33,7 +33,7 @@ const RealTime = () => {
 
   const { presenceData } = usePresenceListener("waiting-queue");
 
-  const handleMatched = async () => {
+  const handleMatched = useCallback(async () => {
     const players = [
       {
         player1: presenceData[0].clientId,
@@ -47,15 +47,18 @@ const RealTime = () => {
     const gameId = uuidv4();
 
     await publish("matched", { players, gameId });
-  };
+  }, [presenceData, publish]);
 
-  if (presenceData.length >= 2) {
-    handleMatched();
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined" && presenceData.length >= 2) {
+      handleMatched();
+    }
+  }, [handleMatched, presenceData]);
 
   const [dotCount, setDotCount] = useState(0);
 
   useEffect(() => {
+    setDotCount(0); // Ensures it's only initialized in the client
     const interval = setInterval(() => {
       setDotCount((prev) => (prev === 3 ? 0 : prev + 1));
     }, 500);
@@ -76,19 +79,18 @@ const RealTime = () => {
         </div>
 
         <div className="text-lg font-semibold mt-4 text-gray-700">
-          Matching <span className="text-blue-500">{presenceData.length}</span>{" "}
-          online players
+          Matching online players
         </div>
 
         <div className="mt-2 text-gray-500 text-sm">
-          Please wait
-          <span className="text-blue-500">{".".repeat(dotCount)}</span>
+          <div className="text-blue-500">
+            Please wait {Array(dotCount).fill(".").join("")}
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
 export default function Page() {
   return (
     <ChannelProvider channelName="waiting-queue">

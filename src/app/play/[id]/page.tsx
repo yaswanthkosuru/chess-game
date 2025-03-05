@@ -19,6 +19,13 @@ function PlayRandomMoveEngine() {
   const [game, setGame] = useState<Chess>(new Chess());
   const { id } = useParams();
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   const [currentMove, setCurrentMove] = useState<{
     from: Square | undefined;
     to: Square | undefined;
@@ -30,6 +37,7 @@ function PlayRandomMoveEngine() {
   usePresence(id as string);
   const { presenceData } = usePresenceListener(id as string);
   console.log(presenceData, "presenceData");
+
   useChannel(id as string, "move", (message) => {
     const { moveBy, move } = message.data;
     console.log(move, moveBy, "message");
@@ -108,6 +116,15 @@ function PlayRandomMoveEngine() {
   };
 
   const boardSize = useBoardSize();
+  if (presenceData.length < 2 && !loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <h1 className="text-2xl font-semibold text-red-500 bg-gray-100 px-6 py-3 rounded-lg shadow-md">
+          Opponent Left 😢
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b md:bg-gradient-to-r from-[#282626] to-[#211919] text-white p-6">
