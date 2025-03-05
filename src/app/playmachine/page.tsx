@@ -19,6 +19,7 @@ export default function PlayRandomMoveEngine() {
     from: undefined,
     to: undefined,
   });
+  const [isThinking, setIsThinking] = useState(false);
 
   function makeAMove(move: any) {
     setGame((prevgame) => {
@@ -58,20 +59,30 @@ export default function PlayRandomMoveEngine() {
   useEffect(() => {
     if (turn === "b") {
       (async () => {
-        const startTime = Date.now();
-        const response = await axios.post(`${API_URL}/predict`, {
-          fen_string: game.fen(),
-        });
-        const { from, to } = response.data;
-        const nextMove = { from, to };
-
-        const elapsedTime = Date.now() - startTime;
-        const delay = Math.max(1000 - elapsedTime, 0);
-
-        setTimeout(() => {
-          makeAMove(nextMove);
-          setTurn("w");
-        }, delay);
+        setIsThinking(true); // Start showing the spinner
+        try {
+          const response = await axios.post(`${API_URL}/predict`, {
+            fen_string: game.fen(),
+          });
+          const { from, to } = response.data;
+          const nextMove = { from, to };
+          setTimeout(() => {
+            setCurrentMove((prev) => ({
+              ...prev,
+              from: nextMove.from,
+            }));
+          }, 200);
+          setTimeout(() => {
+            setCurrentMove((prev) => ({
+              ...prev,
+              to: nextMove.to,
+            }));
+            setIsThinking(false); // Stop showing the spinner once the move is completed
+          }, 400);
+        } catch (error) {
+          console.error("Error fetching move:", error);
+          setIsThinking(false);
+        }
       })();
     }
 
@@ -85,7 +96,7 @@ export default function PlayRandomMoveEngine() {
   const onSquareClick = (square: Square, piece: string | undefined) => {
     if (piece && piece.startsWith(turn)) {
       setCurrentMove((prev) => ({ ...prev, from: square }));
-    } else if (currentMove.from) {
+    } else if (currentMove.from && possibleMoves.includes(square)) {
       setCurrentMove((prev) => ({ ...prev, to: square }));
     }
   };
@@ -95,8 +106,34 @@ export default function PlayRandomMoveEngine() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b md:bg-gradient-to-r from-[#282626] to-[#211919] text-white p-6">
       <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
-        Play Online Chess
+        Play With Our Trained Bots
       </h1>
+      <div className="min-h-20">
+        {/* Show spinner and message while engine is thinking */}
+        {isThinking && (
+          <div className="flex items-center mb-4 min-h-10">
+            <svg
+              className="animate-spin h-6 w-6 mr-2 text-white"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
+            </svg>
+            <span>Engine is thinking...</span>
+          </div>
+        )}
+      </div>
 
       <div className="grid md:grid-cols-2 grid-cols-1 gap-10 w-full max-w-6xl">
         <div className="flex justify-center">
@@ -124,7 +161,7 @@ export default function PlayRandomMoveEngine() {
           />
         </div>
 
-        <div className=" p-4 rounded-lg shadow-md">
+        <div className="p-4 rounded-lg shadow-md">
           <ChatBot fenstring={game.fen()} />
         </div>
       </div>
