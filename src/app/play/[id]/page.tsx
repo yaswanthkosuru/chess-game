@@ -100,9 +100,9 @@ function PlayRandomMoveEngine() {
   }, [currentMove.from, currentMove.to, game, makeAMove]);
 
   const onSquareClick = (square: Square, piece: string | undefined) => {
-    if (piece && piece?.startsWith(turn) && color?.startsWith(turn)) {
+    if (piece && piece.startsWith(turn)) {
       setCurrentMove((prev) => ({ ...prev, from: square }));
-    } else if (currentMove.from) {
+    } else if (currentMove.from && possibleMoves.includes(square)) {
       setCurrentMove((prev) => ({ ...prev, to: square }));
     }
   };
@@ -143,7 +143,7 @@ function PlayRandomMoveEngine() {
         </div>
 
         <div className=" p-4 rounded-lg shadow-md">
-          <RealTimeChatBot fenstring={game.fen()} />
+          <RealTimeChatBot />
         </div>
       </div>
     </div>

@@ -64,7 +64,7 @@ export default function PlayRandomMoveEngine() {
   const onSquareClick = (square: Square, piece: string | undefined) => {
     if (piece && piece.startsWith(turn)) {
       setCurrentMove((prev) => ({ ...prev, from: square }));
-    } else if (currentMove.from) {
+    } else if (currentMove.from && possibleMoves.includes(square)) {
       setCurrentMove((prev) => ({ ...prev, to: square }));
     }
   };
